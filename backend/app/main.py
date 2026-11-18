@@ -17,7 +17,7 @@ setup_logging(settings.LOG_LEVEL, settings.LOG_FORMAT)
 from app.core.database import engine  # noqa: E402
 from app.core.middleware import RequestLoggingMiddleware  # noqa: E402
 from app.core.redis_service import redis_client  # noqa: E402
-from app.routers import auth  # noqa: E402
+from app.routers import auth, categories, products  # noqa: E402
 
 logger = logging.getLogger("app")
 
@@ -35,6 +35,8 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="RAG E-commerce Assistant", version="0.1.0", lifespan=lifespan)
 app.add_middleware(RequestLoggingMiddleware)
 app.include_router(auth.router)
+app.include_router(categories.router)
+app.include_router(products.router)
 
 
 @app.get("/health", tags=["Health"])
