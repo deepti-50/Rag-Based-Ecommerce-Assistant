@@ -9,8 +9,10 @@ from app.core.config import settings
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False,
-    pool_size=20,
-    max_overflow=10,
+    pool_size=settings.DB_POOL_SIZE,
+    max_overflow=settings.DB_MAX_OVERFLOW,
+    pool_pre_ping=True,   # drop dead connections (DB restart, idle timeouts in k8s/NAT)
+    pool_recycle=1800,
 )
 
 async_session = async_sessionmaker(
@@ -19,12 +21,12 @@ async_session = async_sessionmaker(
     expire_on_commit=False,
 )
 
+
 class Base(DeclarativeBase):
     pass
 
+
 async def get_db():
+    # `async with` already closes the session (and rolls back uncommitted work).
     async with async_session() as session:
-        try:
-            yield session
-        finally:
-            await session.close()
+        yield session

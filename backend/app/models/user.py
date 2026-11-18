@@ -1,7 +1,7 @@
 """Table: users — stores registered user accounts."""
 import uuid
-from sqlalchemy import Column, String, Boolean, DateTime, JSON
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Boolean, DateTime
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 from app.core.database import Base
 
@@ -13,7 +13,7 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     full_name = Column(String(255), nullable=False)
     phone = Column(String(20), nullable=True)
-    address = Column(JSON, default={})
+    address = Column(JSONB, default=dict)
 
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
