@@ -1,6 +1,6 @@
 import uuid
-from sqlalchemy import Column, String, Numeric, Integer, DateTime, JSON, ForeignKey
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Column, String, Numeric, Integer, DateTime, ForeignKey, CheckConstraint
+from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.core.database import Base
@@ -13,7 +13,7 @@ class Order(Base):
     total_amount = Column(Numeric(10, 2), nullable=False)
     tax_amount = Column(Numeric(10, 2), default=0)
     shipping_cost = Column(Numeric(10, 2), default=0)
-    shipping_address = Column(JSON, nullable=False)
+    shipping_address = Column(JSONB, nullable=False)
     payment_status = Column(String(50), default="pending")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
@@ -22,10 +22,11 @@ class Order(Base):
 class OrderItem(Base):
     __tablename__ = "order_items"
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False)
+    order_id = Column(UUID(as_uuid=True), ForeignKey("orders.id", ondelete="CASCADE"), nullable=False, index=True)
     product_id = Column(UUID(as_uuid=True), ForeignKey("products.id"), nullable=False)
     quantity = Column(Integer, nullable=False)
     unit_price = Column(Numeric(10, 2), nullable=False)
     total_price = Column(Numeric(10, 2), nullable=False)
+    __table_args__ = (CheckConstraint("quantity > 0", name="ck_order_item_qty_positive"),)
     order = relationship("Order", back_populates="items")
     product = relationship("Product")
