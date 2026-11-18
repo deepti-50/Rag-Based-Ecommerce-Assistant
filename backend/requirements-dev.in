@@ -1,0 +1,7 @@
+# Test/dev tools. Constrained to the app lockfile so versions never drift from prod.
+#   uv pip compile requirements-dev.in -o requirements-dev.txt
+#   uv pip install -r requirements.txt -r requirements-dev.txt
+-c requirements.txt
+pytest>=8
+pytest-asyncio>=0.26
+httpx>=0.27
