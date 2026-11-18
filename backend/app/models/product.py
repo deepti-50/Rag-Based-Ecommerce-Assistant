@@ -33,3 +33,7 @@ class Product(Base):
     )
     category = relationship("Category", back_populates="products")
     reviews = relationship("ProductReview", back_populates="product")
+
+    @property
+    def in_stock(self) -> bool:
+        return (self.stock_quantity or 0) > 0

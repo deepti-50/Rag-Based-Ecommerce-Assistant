@@ -32,6 +32,28 @@ uvicorn app.main:app --reload
 
 API docs: http://localhost:8000/docs · Liveness: `/health` · Readiness: `/ready`
 
+## Sample data and admin
+
+```bash
+docker compose exec api python -m app.scripts.seed                    # 8 categories, 200 products (only if empty)
+docker compose exec api python -m app.scripts.seed --reset            # DEV ONLY: wipe catalog and reseed
+docker compose exec api python -m app.scripts.make_admin you@example.com   # then log in again
+```
+
+(Running the API on your host? Use `python -m app.scripts.seed` from `backend/`.)
+
+## API overview
+
+| Endpoint | Who |
+|---|---|
+| `POST /auth/register`, `/auth/login`, `/auth/refresh` | anyone |
+| `GET /auth/me`, `POST /auth/logout` | logged in |
+| `GET /categories`, `GET /products`, `GET /products/{id}` | anyone |
+| `POST / PATCH / DELETE` on `/categories` and `/products` | admin |
+
+`GET /products` filters: `q` (text search), `category` (slug), `min_price`, `max_price`, `in_stock`, `sort` (`newest`, `price_asc`, `price_desc`, `rating`, `name`), `limit` (max 100), `offset`.
+Deleting a product hides it (soft delete) because orders and reviews still point to it; `PATCH {"is_active": true}` brings it back.
+
 ## Tests
 
 Needs Postgres + Redis running (`docker compose up -d postgres redis`). Tests use a separate `ecommerce_rag_test` database and Redis DB 15.
