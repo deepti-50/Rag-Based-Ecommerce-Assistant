@@ -1,0 +1,67 @@
+# Local development stack.
+#   Infra only (run the API on your host with --reload):  docker compose up -d postgres redis
+#   Everything in containers:                              docker compose up --build
+# Needs backend/.env (copy backend/.env.example).
+# Ollama is NOT here on purpose: run it natively on macOS for GPU (Metal) speed.
+name: rag-ecommerce
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres   # local dev only
+      POSTGRES_DB: ecommerce_rag
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ecommerce_rag"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  # One-shot job: apply DB migrations, then exit. Runs once per `up`, not per API
+  # replica (same pattern as a k8s Job / Helm pre-upgrade hook).
+  migrate:
+    build: ./backend
+    command: ["alembic", "upgrade", "head"]
+    env_file: backend/.env
+    environment: &container_env
+      DATABASE_URL: postgresql+asyncpg://postgres:postgres@postgres:5432/ecommerce_rag
+      REDIS_URL: redis://redis:6379/0
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: ./backend
+    env_file: backend/.env
+    environment: *container_env
+    ports:
+      - "8000:8000"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/ready')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
