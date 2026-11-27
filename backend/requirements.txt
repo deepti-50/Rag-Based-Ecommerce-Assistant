@@ -150,7 +150,9 @@ langchain-protocol==0.0.19
 langchain-text-splitters==1.1.2
     # via -r requirements.in
 langgraph==1.2.11
-    # via langchain
+    # via
+    #   -r requirements.in
+    #   langchain
 langgraph-checkpoint==4.2.0
     # via
     #   langgraph

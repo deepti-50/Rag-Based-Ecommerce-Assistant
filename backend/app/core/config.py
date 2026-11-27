@@ -40,8 +40,15 @@ class Settings(BaseSettings):
     GOOGLE_API_KEY: Optional[str] = None
     GROQ_API_KEY: Optional[str] = None
 
-    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"
+    EMBEDDING_MODEL: str = "all-MiniLM-L6-v2"  # chromadb's built-in ONNX embedder (free, runs locally)
     CHROMA_PERSIST_DIR: str = "./chroma_db"
+    CHROMA_COLLECTION: str = "products"
+
+    # --- Assistant (app/agent) ---
+    RAG_TOP_K: int = 5              # products returned per search
+    AGENT_MAX_STEPS: int = 12       # LangGraph recursion_limit: caps agent<->tools loops
+    CHAT_HISTORY_LIMIT: int = 20    # past messages sent to the LLM per turn
+    LLM_TIMEOUT_SECONDS: int = 120
 
 
 settings = Settings()
