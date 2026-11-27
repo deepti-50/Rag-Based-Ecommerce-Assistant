@@ -17,7 +17,7 @@ setup_logging(settings.LOG_LEVEL, settings.LOG_FORMAT)
 from app.core.database import engine  # noqa: E402
 from app.core.middleware import RequestLoggingMiddleware  # noqa: E402
 from app.core.redis_service import redis_client  # noqa: E402
-from app.routers import auth, categories, products  # noqa: E402
+from app.routers import auth, categories, chat, products  # noqa: E402
 
 logger = logging.getLogger("app")
 
@@ -37,6 +37,7 @@ app.add_middleware(RequestLoggingMiddleware)
 app.include_router(auth.router)
 app.include_router(categories.router)
 app.include_router(products.router)
+app.include_router(chat.router)
 
 
 @app.get("/health", tags=["Health"])
